@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>¡Felicidades!</title>
+</head>
+<body>
+  <h1>¡Felicidades!</h1>
+  <script>
+    const queryString = decodeURIComponent(window.location.search)
+    const mov = queryString.substring(1)
+    const h2 = document.createElement('h2')
+    h2.innerHTML = `Ha logrado completar el laberinto en ${mov} movimentos :)}`
+    document.body.append(h2)
+  </script>
+</body>
+</html>

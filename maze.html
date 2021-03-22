@@ -1,0 +1,176 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        let queryString = decodeURIComponent(window.location.search)
+        queryString = queryString.substring(1)
+        const queries = queryString.split('&')
+        const htmlRoot = document.getElementById('root')
+        let movimientos = 0
+
+        const Wall = () => {
+          const style = {
+            width: '100px',
+            height: '100px',
+            backgroundColor: 'blue',
+          }
+          return <div style={style} />
+        }
+
+        const Goal = () => {
+          const style = {
+            width: '100px',
+            height: '100px',
+            backgroundColor: 'green',
+          }
+          return <div style={style} />
+        }
+
+        const Player = ({ data }) => {
+          const style = {
+            width: '100px',
+            height: '100px',
+            backgroundImage: data[0],
+            backgroundSize: '100% 100%',
+          }
+          return <div style={style} />
+        }
+
+        const Empty = () => {
+          const style = {
+            width: '100px',
+            height: '100px',
+            backgroundColor: 'white',
+          }
+          return <div style={style} />
+        }
+
+        const Maze = () => {
+          const [mazeData, setMazeData] = React.useState([])
+          const [playerData, setPlayerData] = React.useState(["url('imgs/right.png')", []])
+
+          const rowStyles = {
+            display: 'flex',
+          }
+
+          const getPlayer = () => {
+            for (let i = 0; i < mazeData.length; i += 1) {
+              for (let j = 0; j < mazeData[i].length; j += 1) {
+                if (mazeData[i][j] === 'p') {
+                  return [i, j]
+                }
+              }
+            }
+            return [0, 0]
+          }
+
+          const onWin = () => {
+            const nextQueryString = `?${movimientos}`
+            window.location.href = `win.html${nextQueryString}`
+          }
+
+          const onMove = (event) => {
+            if (event.key === 'ArrowRight') {
+              const oldInd = getPlayer()
+              const newInd = [oldInd[0], oldInd[1] + 1]
+              setPlayerData(["url('imgs/right.png')", newInd])
+              if (mazeData[newInd[0]][newInd[1]] === ' ') {
+                setMazeData((old) => {
+                  const n = old
+                  n[oldInd[0]][oldInd[1]] = ' '
+                  n[newInd[0]][newInd[1]] = 'p'
+                  return n
+                })
+                movimientos += 1
+              } else if (mazeData[newInd[0]][newInd[1]] === 'g') {
+                onWin()
+              }
+            } else if (event.key === 'ArrowLeft') {
+              const oldInd = getPlayer()
+              const newInd = [oldInd[0], oldInd[1] - 1]
+              setPlayerData(["url('imgs/left.png')", newInd])
+              if (mazeData[newInd[0]][newInd[1]] === 'n') {
+                setMazeData((old) => {
+                  const n = old
+                  n[oldInd[0]][oldInd[1]] = ' '
+                  n[newInd[0]][newInd[1]] = 'p'
+                  return n
+                })
+                movimientos += 1
+              } else if (mazeData[newInd[0]][newInd[1]] === 'g') {
+                onWin()
+              }
+            } else if (event.key === 'ArrowUp') {
+              const oldInd = getPlayer()
+              const newInd = [oldInd[0] - 1, oldInd[1]]
+              setPlayerData(["url('imgs/up.png')", newInd])
+              if (mazeData[newInd[0]][newInd[1]] === ' ') {
+                setMazeData((old) => {
+                  const n = old
+                  n[oldInd[0]][oldInd[1]] = ' '
+                  n[newInd[0]][newInd[1]] = 'p'
+                  return n
+                })
+                movimientos += 1
+              } else if (mazeData[newInd[0]][newInd[1]] === 'g') {
+                onWin()
+              }
+            } else if (event.key === 'ArrowDown') {
+              const oldInd = getPlayer()
+              const newInd = [oldInd[0] + 1, oldInd[1]]
+              setPlayerData(["url('imgs/down.png')", newInd])
+              if (mazeData[newInd[0]][newInd[1]] === ' ') {
+                setMazeData((old) => {
+                  const n = old
+                  n[oldInd[0]][oldInd[1]] = ' '
+                  n[newInd[0]][newInd[1]] = 'p'
+                  return n
+                })
+                movimientos += 1
+              } else if (mazeData[newInd[0]][newInd[1]] === 'g') {
+                onWin()
+              }
+            }
+          }
+
+          React.useEffect(() => {
+            fetch(`http://ubeje.xyz:3001/?type=json&w=${queries[0]}&h=${queries[1]}`)
+              .then((r) => r.json())
+              .then((r) => setMazeData(r))
+          }, [])
+
+          return (
+            <div tabIndex="0" onKeyDown={onMove} data={mazeData} role="menuitem">
+              {mazeData.map((row) => (
+                <div style={rowStyles}>
+                  {row.map((cell) => {
+                    switch (cell) {
+                      case 'p':
+                        return <Player data={playerData} />
+                      case 'g':
+                        return <Goal />
+                      case ' ':
+                        return <Empty />
+                      default:
+                        return <Wall />
+                    }
+                  })}
+                </div>
+              ))}
+            </div>
+          )
+        }
+
+        ReactDOM.render(
+          <Maze />,
+          htmlRoot,
+        )
+    </script>
+  </body>
+</html>
